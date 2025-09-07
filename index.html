@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>海湾石油珠泾路站团购优惠</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    <style>
+        :root {
+            --primary: #0066cc;
+            --secondary: #ff6600;
+            --dark: #1a1a1a;
+        }
+        .bg-primary { background-color: var(--primary); }
+        .text-primary { color: var(--primary); }
+        .bg-secondary { background-color: var(--secondary); }
+        .text-secondary { color: var(--secondary); }
+        .bg-dark { background-color: var(--dark); }
+        .hover\:bg-primary:hover { background-color: var(--primary); }
+        .hover\:text-primary:hover { color: var(--primary); }
+        
+        /* 微信绑定弹窗样式 */
+        .wechat-modal {
+            backdrop-filter: blur(5px);
+        }
+        
+        /* 倒计时样式 */
+        .countdown-item {
+            min-width: 60px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- 微信绑定弹窗 -->
+    <div id="wechat-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 wechat-modal">
+        <div class="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4">
+            <div class="text-center">
+                <div class="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fab fa-weixin text-white text-3xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold mb-4">绑定微信账号</h2>
+                <p class="text-gray-600 mb-6">请先绑定微信，以便保存您的团购信息</p>
+                
+                <div class="space-y-4">
+                    <input type="text" id="wechat-name" placeholder="请输入微信昵称" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                    <input type="tel" id="wechat-phone" placeholder="请输入手机号码" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                </div>
+                
+                <div class="mt-6 space-y-3">
+                    <button onclick="bindWeChat()" 
+                            class="w-full bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition-colors">
+                        <i class="fab fa-weixin mr-2"></i>确认绑定
+                    </button>
+                    <p class="text-xs text-gray-500">绑定后团购信息将保存7天</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 顶部导航 -->
+    <nav class="bg-white shadow-md">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <div class="text-2xl font-bold text-primary">海湾石油珠泾路站</div>
+                <div class="flex items-center space-x-4">
+                    <div id="countdown-container" class="hidden">
+                        <span class="text-sm text-gray-600">剩余时间：</span>
+                        <div class="flex space-x-2 text-sm">
+                            <div class="countdown-item bg-primary text-white px-2 py-1 rounded" id="days">00</div>
+                            <span>天</span>
+                            <div class="countdown-item bg-primary text-white px-2 py-1 rounded" id="hours">00</div>
+                            <span>时</span>
+                            <div class="countdown-item bg-primary text-white px-2 py-1 rounded" id="minutes">00</div>
+                            <span>分</span>
+                            <div class="countdown-item bg-primary text-white px-2 py-1 rounded" id="seconds">00</div>
+                            <span>秒</span>
+                        </div>
+                    </div>
+                    <div class="hidden md:flex space-x-6">
+                        <a href="#about" class="text-gray-600 hover:text-primary transition-colors">活动说明</a>
+                        <a href="#contact" class="text-gray-600 hover:text-primary transition-colors">联系我们</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 活动横幅 -->
+    <section class="bg-gradient-to-r from-primary to-blue-700 text-white py-20">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">团购优惠活动</h1>
+            <p class="text-xl mb-8">邀请好友一起加油，享受超值折扣</p>
+            <div class="bg-white/10 backdrop-blur-sm rounded-lg p-6 max-w-md mx-auto">
+                <p class="text-lg">客服电话：<span class="text-yellow-300 font-bold">0512-62886309</span></p>
+                <div class="mt-4">
+                    <p class="text-sm">团购信息保存截止时间</p>
+                    <div class="text-2xl font-bold text-yellow-300" id="deadline-time">--</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 快速分享区域 -->
+    <section id="quick-share" class="py-16 bg-gray-100 hidden">
+        <div class="container mx-auto px-4 max-w-md">
+            <div class="bg-white rounded-xl shadow-lg p-8 text-center">
+                <h2 class="text-2xl font-bold mb-4">团购信息已保存</h2>
+                <p class="text-gray-600 mb-6">点击下方二维码分享给好友，一起享受优惠</p>
+                
+                <div class="mb-6">
+                    <div id="share-qrcode" class="w-48 h-48 mx-auto bg-white p-2 rounded-lg shadow-md"></div>
+                </div>
+                
+                <div class="space-y-3">
+                    <button onclick="downloadQRCode()" 
+                            class="w-full bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition-colors">
+                        <i class="fa fa-download mr-2"></i>下载二维码
+                    </button>
+                    <button onclick="showShareOptions()" 
+                            class="w-full bg-primary text-white py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fa fa-share mr-2"></i>更多分享方式
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 汽油类型选择 -->
+    <section class="py-16">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-12">选择汽油类型</h2>
+            <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                <!-- 92号汽油 -->
+                <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                    <div class="text-center">
+                        <h3 class="text-2xl font-bold text-primary mb-2">92号汽油</h3>
+                        <p class="text-3xl font-bold text-secondary mb-2" id="price92">¥7.39</p>
+                        <p class="text-sm text-gray-600 mb-2">江苏地区最新价格</p>
+                        <p class="text-xs text-gray-500 mb-4">更新时间：<span id="update-time-92">--</span></p>
+                        <div class="space-y-2 text-sm text-gray-500">
+                            <p>• 400元享93折</p>
+                            <p>• 300元享95折</p>
+                            <p>• 200元享96折</p>
+                        </div>
+                        <button onclick="selectGasoline(92)" 
+                                class="w-full bg-primary text-white py-3 rounded-lg hover:bg-blue-700 transition-colors mt-4">
+                            选择92号汽油
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 95号汽油 -->
+                <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                    <div class="text-center">
+                        <h3 class="text-2xl font-bold text-primary mb-2">95号汽油</h3>
+                        <p class="text-3xl font-bold text-secondary mb-2" id="price95">¥7.85</p>
+                        <p class="text-sm text-gray-600 mb-2">江苏地区最新价格</p>
+                        <p class="text-xs text-gray-500 mb-4">更新时间：<span id="update-time-95">--</span></p>
+                        <div class="space-y-2 text-sm text-gray-500">
+                            <p>• 400元享93折</p>
+                            <p>• 300元享95折</p>
+                            <p>• 200元享96折</p>
+                        </div>
+                        <button onclick="selectGasoline(95)" 
+                                class="w-full bg-primary text-white py-3 rounded-lg hover:bg-blue-700 transition-colors mt-4">
+                            选择95号汽油
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 加油金额选择 -->
+    <section id="amount-selection" class="py-16 bg-gray-100 hidden">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-12">选择加油金额</h2>
+            <div class="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                <div class="bg-white rounded-xl shadow-lg p-6 text-center hover:shadow-xl transition-shadow">
+                    <h3 class="text-xl font-bold mb-2">200元</h3>
+                    <p class="text-secondary font-bold mb-2">享96折</p>
+                    <p class="text-sm text-gray-600 mb-4">实际支付：¥192</p>
+                    <button onclick="selectAmount(200)" 
+                            class="w-full bg-secondary text-white py-2 rounded-lg hover:bg-orange-600 transition-colors">
+                        选择
+                    </button>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-lg p-6 text-center hover:shadow-xl transition-shadow">
+                    <h3 class="text-xl font-bold mb-2">300元</h3>
+                    <p class="text-secondary font-bold mb-2">享95折</p>
+                    <p class="text-sm text-gray-600 mb-4">实际支付：¥285</p>
+                    <button onclick="selectAmount(300)" 
+                            class="w-full bg-secondary text-white py-2 rounded-lg hover:bg-orange-600 transition-colors">
+                        选择
+                    </button>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-lg p-6 text-center hover:shadow-xl transition-shadow">
+                    <h3 class="text-xl font-bold mb-2">400元</h3>
+                    <p class="text-secondary font-bold mb-2">享93折</p>
+                    <p class="text-sm text-gray-600 mb-4">实际支付：¥372</p>
+                    <button onclick="selectAmount(400)" 
+                            class="w-full bg-secondary text-white py-2 rounded-lg hover:bg-orange-600 transition-colors">
+                        选择
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 用户信息表单 -->
+    <section id="form-section" class="py-16 hidden">
+        <div class="container mx-auto px-4 max-w-md">
+            <h2 class="text-3xl font-bold text-center mb-8">填写团购信息</h2>
+            <form id="user-form" class="bg-white rounded-xl shadow-lg p-8">
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">姓名</label>
+                        <input type="text" id="name" required 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">手机号码</label>
+                        <input type="tel" id="phone" required 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">车牌号码</label>
+                        <input type="text" id="plate" required 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">选择加油站</label>
+                        <select id="station" required 
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                            <option value="">请选择加油站</option>
+                            <option value="珠泾路站">海湾石油珠泾路站</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">汽油类型</label>
+                        <input type="text" id="gasoline-type" readonly 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">加油金额</label>
+                        <input type="text" id="amount" readonly 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100">
+                    </div>
+                    
+                    <button type="submit" 
+                            class="w-full bg-primary text-white py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                        立即团购
+                    </button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- 核销说明 -->
+    <section id="about" class="py-16 bg-white">
+        <div class="container mx-auto px-4 max-w-4xl">
+            <h2 class="text-3xl font-bold text-center mb-8">核销说明</h2>
+            <div class="bg-gray-50 p-8 rounded-xl shadow-md">
+                <ul class="space-y-4">
+                    <li class="flex items-start">
+                        <i class="fa fa-check-circle text-primary mt-1 mr-3"></i>
+                        <span>绑定微信后，团购信息将自动保存7天</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa fa-check-circle text-primary mt-1 mr-3"></i>
+                        <span>成团后，您将收到包含核销码的微信消息</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa fa-check-circle text-primary mt-1 mr-3"></i>
+                        <span>请在一周内前往选定的加油站出示核销码</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa fa-check-circle text-primary mt-1 mr-3"></i>
+                        <span>如有问题，请联系客服：<span class="font-bold text-primary">0512-62886309</span></span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="bg-dark text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4">海湾石油珠泾路站</h3>
+                    <p class="text-gray-400">为您提供高品质的燃油和优质的服务</p>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold mb-4">联系我们</h3>
+                    <p class="text-gray-400 mb-2"><i class="fa fa-phone mr-2"></i> 0512-62886309</p>
+                    <p class="text-gray-400"><i class="fa fa-envelope mr-2"></i> service@gulfoil.com</p>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold mb-4">关注我们</h3>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors"><i class="fab fa-weixin text-2xl"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors"><i class="fab fa-weibo text-2xl"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors"><i class="fab fa-qq text-2xl"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500">
+                <p>© 2023 海湾石油珠泾路站 版权所有</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 全局变量
+        let isWeChatBound = false;
+        let countdownInterval;
+        const GITHUB_URL = 'https://huayifan0204.github.io/wohenshuaide/';
+        
+        // 江苏地区最新油价数据（2024年最新）
+        const oilPrices = {
+            92: 7.39,
+            95: 7.85
+        };
+
+        // 微信绑定功能
+        function bindWeChat() {
+            const name = document.getElementById('wechat-name').value.trim();
+            const phone = document.getElementById('wechat-phone').value.trim();
+            
+            if (!name || !phone) {
+                alert('请填写完整的微信信息');
+                return;
+            }
+            
+            if (!/^1[3-9]\d{9}$/.test(phone)) {
+                alert('请输入正确的手机号码');
+                return;
+            }
+            
+            // 保存微信绑定信息到本地存储
+            const userInfo = {
+                name: name,
+                phone: phone,
+                bindTime: new Date().toISOString(),
+                expiryTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+            };
+            
+            localStorage.setItem('wechat_user', JSON.stringify(userInfo));
+            isWeChatBound = true;
+            
+            // 隐藏绑定弹窗
+            document.getElementById('wechat-modal').style.display = 'none';
+            
+            // 显示倒计时和快速分享
+            document.getElementById('countdown-container').classList.remove('hidden');
+            document.getElementById('quick-share').classList.remove('hidden');
+            
+            // 生成分享二维码
+            generateShareQRCode();
+            
+            // 启动倒计时
+            startCountdown(new Date(userInfo.expiryTime));
+            
+            // 更新页面状态
+            updatePageState();
+            
+            alert('微信绑定成功！团购信息已保存7天');
+        }
+
+        // 生成分享二维码
+        function generateShareQRCode() {
+            const qrcodeContainer = document.getElementById('share-qrcode');
+            if (!qrcodeContainer) return;
+            
+            qrcodeContainer.innerHTML = '';
+            try {
+                const qr = qrcodeGenerator(0, 'L');
+                qr.addData(GITHUB_URL);
+                qr.make();
+                const qrImg = qr.createImgTag(6);
+                qrcodeContainer.innerHTML = qrImg;
+                
+                const img = qrcodeContainer.querySelector('img');
+                if (img) {
+                    img.className = 'mx-auto';
+                    img.style.maxWidth = '100%';
+                    img.style.height = 'auto';
+                }
+            } catch (error) {
+                qrcodeContainer.innerHTML = '<span class="text-red-500 text-sm">二维码生成失败</span>';
+            }
+        }
+
+        // 下载二维码
+        function downloadQRCode() {
+            const qrcodeContainer = document.getElementById('share-qrcode');
+            const img = qrcodeContainer.querySelector('img');
+            
+            if (img) {
+                const link = document.createElement('a');
+                link.download = '海湾石油团购二维码.png';
+                link.href = img.src;
+                link.click();
+            }
+        }
+
+        // 倒计时功能
+        function startCountdown(expiryDate) {
+            function updateCountdown() {
+                const now = new Date();
+                const diff = expiryDate - now;
+                
+                if (diff <= 0) {
+                    clearInterval(countdownInterval);
+                    document.getElementById('countdown-container').innerHTML = '<span class="text-red-500">已过期</span>';
+                    return;
+                }
+                
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                
+                document.getElementById('days').textContent = String(days).padStart(2, '0');
+                document.getElementById('hours').textContent = String(hours).padStart(2, '0');
+                document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
+                document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
+            }
+            
+            updateCountdown();
+            countdownInterval = setInterval(updateCountdown, 1000);
+        }
+
+        // 更新页面状态
+        function updatePageState() {
+            // 更新油价显示
+            document.getElementById('price92').textContent = `¥${oilPrices[92].toFixed(2)}`;
+            document.getElementById('price95').textContent = `¥${oilPrices[95].toFixed(2)}`;
+            
+            const now = new Date();
+            const timeString = now.toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            document.getElementById('update-time-92').textContent = timeString;
+            document.getElementById('update-time-95').textContent = timeString;
+            
+            // 设置截止时间
+            const expiryTime = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+            document.getElementById('deadline-time').textContent = expiryTime.toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // 检查微信绑定状态
+        function checkWeChatStatus() {
+            const userInfo = localStorage.getItem('wechat_user');
+            if (userInfo) {
+                const user = JSON.parse(userInfo);
+                const expiryTime = new Date(user.expiryTime);
+                
+                if (expiryTime > new Date()) {
+                    isWeChatBound = true;
+                    document.getElementById('wechat-modal').style.display = 'none';
+                    document.getElementById('countdown-container').classList.remove('hidden');
+                    document.getElementById('quick-share').classList.remove('hidden');
+                    
+                    generateShareQRCode();
+                    startCountdown(expiryTime);
+                } else {
+                    localStorage.removeItem('wechat_user');
+                }
+            }
+        }
+
+        // 其他功能函数
+        function selectGasoline(type) {
+            document.getElementById('gasoline-type').value = type + '号汽油';
+            document.getElementById('amount-selection').classList.remove('hidden');
+            document.getElementById('amount-selection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function selectAmount(amount) {
+            document.getElementById('amount').value = '¥' + amount;
+            document.getElementById('form-section').classList.remove('hidden');
+            document.getElementById('form-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function showShareOptions() {
+            alert('分享功能已激活！您可以通过微信、朋友圈等方式分享团购活动');
+        }
+
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            checkWeChatStatus();
+            updatePageState();
+            
+            // 表单提交
+            document.getElementById('user-form').addEventListener('submit', function(event) {
+                event.preventDefault();
+                alert('团购信息提交成功！请分享给好友一起享受优惠');
+            });
+        });
+    </script>
+</body>
+</html>
